@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Year Wish Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=Nunito:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #ffffec;
+            background-image: radial-gradient(#ffedd5 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow-x: hidden;
+        }
+
+        .display-font {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        .card-enter {
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .message-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .message-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .message-scroll::-webkit-scrollbar-thumb {
+            background: rgba(253, 186, 116, 0.5);
+            border-radius: 4px;
+        }
+
+        .message-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(251, 146, 60, 0.8);
+        }
+
+        /* Loading animation classes */
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Shimmer effect for button */
+        .ai-shimmer {
+            background: linear-gradient(90deg, #ea580c 0%, #16a34a 50%, #ea580c 100%);
+            background-size: 200% auto;
+            animation: shimmer 3s linear infinite;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 200% 50%;
+            }
+        }
+
+        /* Animated Blobs */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out;
+            z-index: 0;
+        }
+
+        .blob-1 {
+            top: -10%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: #fed7aa;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            left: -10%;
+            width: 300px;
+            height: 300px;
+            background: #bbf7d0;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -50px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+        }
+
+        /* Glassmorphism Panels */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 3D Tilt Effect Container */
+        .tilt-container {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+
+        .tilt-card {
+            transition: transform 0.1s ease-out;
+            transform-style: preserve-3d;
+        }
+
+        .tilt-content {
+            transform: translateZ(20px);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-4 text-slate-800 relative">
+
+    <!-- Ambient Background Animation -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-start relative z-10">
+
+        <!-- INPUT SECTION -->
+        <div class="glass-panel rounded-3xl p-8 relative overflow-hidden transition-all duration-300 hover:shadow-xl">
+            <div class="relative z-10">
+                <div class="flex items-center gap-3 mb-6">
+                    <div
+                        class="p-3 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl text-white shadow-lg shadow-orange-200">
+                        <i data-lucide="sparkles" class="w-6 h-6"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-slate-800 display-font">New Year Wish Generator</h1>
+                </div>
+
+                <p class="text-slate-500 mb-6">Enter a few details below to generate a completely unique New Year's wish
+                    card using AI.</p>
+
+                <form id="wishForm" onsubmit="handleGenerate(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Name</label>
+                        <input type="text" id="name" required placeholder="e.g. Uncle Bob"
+                            class="w-full px-5 py-3 rounded-xl bg-white/50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all placeholder:text-slate-400 hover:bg-white">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Age</label>
+                            <input type="number" id="age" required min="1" max="120" placeholder="e.g. 45"
+                                class="w-full px-5 py-3 rounded-xl bg-white/50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all placeholder:text-slate-400 hover:bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Vibe</label>
+                            <select id="tone" onchange="handleToneChange()"
+                                class="w-full px-5 py-3 rounded-xl bg-white/50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-slate-700 cursor-pointer hover:bg-white">
+                                <option value="sarcastic">Sarcastic</option>
+                                <option value="heartfelt">Heartfelt</option>
+                                <option value="professional">Professional</option>
+                                <option value="chaotic">Chaotic</option>
+                                <option value="custom">✨ Custom</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="customVibeContainer" class="hidden">
+                        <label class="block text-sm font-semibold text-orange-600 mb-2 ml-1 flex items-center gap-1">
+                            <i data-lucide="wand" class="w-3 h-3"></i> Custom Vibe
+                        </label>
+                        <input type="text" id="customVibe" placeholder="e.g. Like a 1920s gangster, In haiku form..."
+                            class="w-full px-5 py-3 rounded-xl bg-orange-50/50 border border-orange-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all placeholder:text-orange-300 text-orange-900">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Hobby / Obsession</label>
+                        <input type="text" id="hobby" required placeholder="e.g. Golf, Knitting, Napping"
+                            class="w-full px-5 py-3 rounded-xl bg-white/50 border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all placeholder:text-slate-400 hover:bg-white">
+                    </div>
+
+                    <!-- Surprise Me Button with Tooltip -->
+                    <div class="flex justify-end relative group pt-2">
+                        <!-- Tooltip -->
+                        <div
+                            class="absolute bottom-full right-0 mb-3 w-48 p-2.5 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none text-center shadow-xl z-20 transform translate-y-2 group-hover:translate-y-0">
+                            Populates the fields with random, funny data so you can test quickly!
+                            <div class="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-slate-800">
+                            </div>
+                        </div>
+                        <button type="button" onclick="fillRandom()"
+                            class="text-xs font-bold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 border border-orange-200">
+                            <span>Surprise Me</span>
+                            <span class="text-lg leading-none">🎲</span>
+                        </button>
+                    </div>
+
+                    <button type="submit" id="generateBtn"
+                        class="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-200 transform transition-all active:scale-[0.99] flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed border border-white/20 ai-shimmer">
+                        <span id="btnText">Wish Happy New Year 2026 ✨</span>
+                        <i id="btnIcon" data-lucide="wand-2"
+                            class="w-5 h-5 group-hover:rotate-12 transition-transform"></i>
+                    </button>
+
+                    <div id="aiCredit" class="text-center text-xs text-blue-900 font-medium opacity-70 mt-2">
+                        ✨ Powered by Gemini AI (Nano Banana)
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- RESULT SECTION -->
+        <!-- Added tilt-container for 3D effect -->
+        <div id="resultContainer" class="hidden lg:sticky lg:top-8 tilt-container">
+            <div id="card"
+                class="tilt-card glass-panel rounded-3xl overflow-hidden flex flex-col h-full min-h-[500px] card-enter border-0 ring-1 ring-white/50">
+
+                <!-- Image Pane -->
+                <div class="h-64 sm:h-72 bg-slate-200 relative overflow-hidden group">
+                    <!-- Loading Skeleton for Image (Updated with Spinner) -->
+                    <div id="imageSkeleton"
+                        class="absolute inset-0 bg-slate-100 z-20 flex flex-col items-center justify-center text-orange-500 hidden">
+                        <i data-lucide="loader-2" class="w-10 h-10 animate-spin mb-3"></i>
+                        <span class="text-sm font-semibold animate-pulse tracking-wide">Painting your wish...</span>
+                    </div>
+
+                    <img id="cardImage" src=""
+                        onerror="this.onerror=null; this.src='https://placehold.co/800x600/orange/white?text=Waiting+for+Magic';"
+                        alt="New Year Celebration"
+                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    <div class="absolute bottom-4 left-4 tilt-content">
+                        <span id="yearBadge"
+                            class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-semibold text-white border border-white/30 shadow-lg">Happy
+                            New Year!</span>
+                    </div>
+                </div>
+
+                <!-- Message Pane -->
+                <div class="p-8 flex-1 flex flex-col relative bg-white/80">
+                    <!-- Decor -->
+                    <i data-lucide="quote"
+                        class="absolute top-6 right-6 text-orange-100 w-12 h-12 fill-orange-50 tilt-content"></i>
+
+                    <h2 class="text-2xl font-bold text-slate-800 mb-4 display-font text-blue-900 tilt-content"
+                        id="cardTitle">
+                        <!-- Filled by JS -->
+                    </h2>
+
+                    <div class="flex-1 overflow-y-auto message-scroll pr-2 tilt-content">
+                        <p id="cardMessage" class="text-lg text-slate-600 leading-relaxed">
+                            <!-- Filled by JS -->
+                        </p>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between tilt-content">
+                        <div class="text-xs text-slate-400 font-medium uppercase tracking-wider">Generated with ❤️</div>
+                        <button onclick="copyToClipboard()"
+                            class="text-green-600 hover:text-green-800 text-sm font-semibold flex items-center gap-2 transition-colors py-2 px-4 rounded-lg hover:bg-green-50">
+                            <i data-lucide="copy" class="w-4 h-4"></i> Copy Text
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Placeholder -->
+        <div id="placeholderState"
+            class="hidden lg:flex flex-col items-center justify-center h-full min-h-[400px] glass-panel rounded-3xl p-8 text-center border-dashed border-2 border-slate-300 bg-white/30">
+            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+                <i data-lucide="layout-template" class="w-10 h-10 text-orange-300"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-slate-500 display-font">Your masterpiece awaits</h3>
+            <p class="text-slate-400 mt-2 max-w-xs mx-auto">Fill out the form to generate a card with a unique image and
+                wish.</p>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const apiKey = ""; // Set by environment
+
+        // --- Gemini Text API ---
+        async function callGeminiText(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        // --- Gemini Image API (Nano Banana) ---
+        async function callGeminiImage(prompt) {
+            // Using gemini-2.5-flash-image-preview (Nano Banana)
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+
+            // Note: The preview environment currently supports this specific payload structure for image generation
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseModalities: ["IMAGE"]
+                }
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error("Image generation failed");
+
+            const data = await response.json();
+            // The API returns inline base64 data usually
+            const base64Data = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+            if (base64Data) {
+                return `data:image/png;base64,${base64Data}`;
+            }
+            throw new Error("No image data found");
+        }
+
+        // --- App Logic ---
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const wishYear = (now.getMonth() === 11 && now.getDate() > 22) ? currentYear + 1 : currentYear;
+
+        // Update button text on load to ensure it matches current logic
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btnText').innerText = `Wish Happy New Year ${wishYear} ✨`;
+        });
+
+        // Fallback Templates (Used if API Fails)
+        const templates = {
+            sarcastic: ["Happy New Year, ${name}! At ${age}, you’re not getting older, you’re just increasing in value—like a fine antique or that weird ${hobby} collection.", "Happy ${wishYear}! I was going to buy you a car, but then I remembered you're ${age}. Enjoy your ${hobby} instead!"],
+            heartfelt: ["Dearest ${name}, wishing you a New Year that sparkles with joy. May your ${age}th year be your best yet, filled with love and plenty of time for ${hobby}.", "Happy New Year, ${name}! May ${wishYear} bring you peace."],
+            professional: ["Happy New Year, ${name}. Wishing you a productive ${wishYear}.", "Best wishes for the year ahead, ${name}. May ${wishYear} be a year of growth."],
+            chaotic: ["HAPPY NEW YEAR ${name}!!! I HOPE YOU DO SO MUCH ${hobby} THAT YOU EXPLODE WITH JOY!! ${wishYear} LETS GOOOO!", "CHAOS REIGNS! ${name}, GO DO ${hobby}!"]
+        };
+
+        const titles = {
+            sarcastic: ["Cheers, ${name}!", "Vintage Edition: ${age}"],
+            heartfelt: ["Warmest Wishes", "To You, ${name}"],
+            professional: ["Season's Greetings", "Happy New Year"],
+            chaotic: ["LETS GOOOO", "OMG ${wishYear}"]
+        };
+
+        function getRandomElement(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        // --- Interaction Logic ---
+
+        // 3D Tilt Effect
+        const cardContainer = document.getElementById('resultContainer');
+        const cardEl = document.getElementById('card');
+
+        cardContainer.addEventListener('mousemove', (e) => {
+            if (window.innerWidth < 1024) return; // Desktop only
+            const rect = cardContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rotateX = ((y - centerY) / centerY) * -5; // Max 5 deg rotation
+            const rotateY = ((x - centerX) / centerX) * 5;
+
+            cardEl.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+
+        cardContainer.addEventListener('mouseleave', () => {
+            cardEl.style.transform = `rotateX(0) rotateY(0)`;
+        });
+
+        function handleToneChange() {
+            const tone = document.getElementById('tone').value;
+            const customContainer = document.getElementById('customVibeContainer');
+            tone === 'custom' ? customContainer.classList.remove('hidden') : customContainer.classList.add('hidden');
+        }
+
+        function fillRandom() {
+            const names = ["Aunt Sally", "Grandpa Joe", "The Boss", "Little Timmy", "Karen from HR", "Captain Jack"];
+            const ages = [25, 40, 60, 85, 12, 50];
+            const hobbies = ["Extreme Ironing", "Collecting Spoons", "Yelling at Clouds", "Competitive Napping", "Quantum Physics"];
+            const tones = ['sarcastic', 'heartfelt', 'professional', 'chaotic'];
+
+            document.getElementById('name').value = getRandomElement(names);
+            document.getElementById('age').value = getRandomElement(ages);
+            document.getElementById('hobby').value = getRandomElement(hobbies);
+
+            const toneSelect = document.getElementById('tone');
+            if (toneSelect.value !== 'custom') toneSelect.value = getRandomElement(tones);
+            handleToneChange();
+        }
+
+        function setLoading(isLoading) {
+            const btn = document.getElementById('generateBtn');
+            const btnText = document.getElementById('btnText');
+            const btnIcon = document.getElementById('btnIcon');
+            const imgSkeleton = document.getElementById('imageSkeleton');
+
+            if (isLoading) {
+                btn.disabled = true;
+                btnText.innerText = "Gemini is Thinking...";
+                btnIcon.setAttribute('data-lucide', 'loader-2');
+                btnIcon.classList.add('spinner');
+                imgSkeleton.classList.remove('hidden');
+            } else {
+                btn.disabled = false;
+                btnText.innerText = `Wish Happy New Year ${wishYear} ✨`;
+                btnIcon.setAttribute('data-lucide', 'wand-2');
+                btnIcon.classList.remove('spinner');
+                imgSkeleton.classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        function triggerConfetti() {
+            var duration = 3000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+            var random = (min, max) => Math.random() * (max - min) + min;
+            var interval = setInterval(function () {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        async function handleGenerate(e) {
+            e.preventDefault();
+            setLoading(true);
+            const placeholder = document.getElementById('placeholderState');
+            const resultContainer = document.getElementById('resultContainer');
+
+            // Swap view early to show loading skeleton
+            placeholder.classList.add('hidden');
+            placeholder.classList.remove('lg:flex');
+            resultContainer.classList.remove('hidden');
+
+            // Always use AI
+            await generateWithAI();
+        }
+
+        function generateLocalWish() {
+            const name = document.getElementById('name').value.trim();
+            const age = parseInt(document.getElementById('age').value);
+            const hobby = document.getElementById('hobby').value.trim();
+            const tone = document.getElementById('tone').value;
+            const safeTone = (tone === 'custom') ? 'sarcastic' : tone;
+
+            let selectedWish = getRandomElement(templates[safeTone]);
+            let selectedTitle = getRandomElement(titles[safeTone] || titles['sarcastic']);
+
+            selectedWish = selectedWish.replace('${name}', name).replace('${age}', age).replace('${hobby}', hobby).replace('${wishYear}', wishYear);
+            selectedTitle = selectedTitle.replace('${name}', name).replace('${age}', age).replace('${hobby}', hobby).replace('${wishYear}', wishYear);
+
+            // Use simple placeholder since we removed festive images
+            displayResult(selectedTitle, selectedWish, 'https://placehold.co/800x600/f97316/ffffff?text=AI+Unavailable');
+        }
+
+        async function generateWithAI() {
+            const name = document.getElementById('name').value.trim();
+            const age = document.getElementById('age').value;
+            const hobby = document.getElementById('hobby').value.trim();
+            const toneSelect = document.getElementById('tone').value;
+            let vibe = (toneSelect === 'custom') ? document.getElementById('customVibe').value.trim() || "Uniquely funny" : toneSelect;
+
+            const prompt = `
+                Generate a short, funny New Year's wish (max 2 sentences) and a title (max 5 words).
+                Person: ${name}, Age: ${age}, Hobby: ${hobby}, Vibe: ${vibe}, Year: ${wishYear}.
+                
+                Also provide a visual image description prompt for an AI image generator. The image should be festive, safe, and related to the hobby if possible, or general New Year celebration.
+                
+                Return ONLY valid JSON:
+                {
+                    "title": "...",
+                    "wish": "...",
+                    "imagePrompt": "..."
+                }
+            `;
+
+            try {
+                // 1. Generate Text & Image Prompt
+                const rawText = await callGeminiText(prompt);
+                const jsonStr = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                const data = JSON.parse(jsonStr);
+
+                // Update text immediately
+                const cardTitle = document.getElementById('cardTitle');
+                const cardMessage = document.getElementById('cardMessage');
+                cardTitle.innerText = data.title;
+                cardMessage.innerText = data.wish;
+
+                // 2. Generate Image (Parallel or Sequential)
+                try {
+                    const base64Image = await callGeminiImage(data.imagePrompt + ", festive, high quality, photorealistic, 4k");
+                    displayResult(data.title, data.wish, base64Image);
+                } catch (imgError) {
+                    console.error("Image gen failed", imgError);
+                    // Use placeholder if AI image generation fails
+                    displayResult(data.title, data.wish, 'https://placehold.co/800x600/f97316/ffffff?text=Image+Gen+Failed');
+                }
+
+                triggerConfetti();
+            } catch (error) {
+                console.error("AI Generation failed:", error);
+                generateLocalWish();
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function displayResult(title, message, imgSrc) {
+            const cardImage = document.getElementById('cardImage');
+            const cardTitle = document.getElementById('cardTitle');
+            const cardMessage = document.getElementById('cardMessage');
+            const yearBadge = document.getElementById('yearBadge');
+
+            cardImage.src = imgSrc;
+            cardTitle.innerText = title;
+            cardMessage.innerText = message;
+            yearBadge.innerText = `Happy ${wishYear}!`;
+
+            const card = document.getElementById('card');
+            card.classList.remove('card-enter');
+            void card.offsetWidth;
+            card.classList.add('card-enter');
+
+            if (window.innerWidth < 1024) {
+                document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('cardMessage').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('button[onclick="copyToClipboard()"]');
+                const originalContent = btn.innerHTML;
+                btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Copied!`;
+                btn.classList.add('text-green-600', 'bg-green-100');
+                btn.classList.remove('text-green-600');
+                lucide.createIcons();
+                setTimeout(() => {
+                    btn.innerHTML = originalContent;
+                    btn.classList.remove('bg-green-100');
+                    lucide.createIcons();
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -2,5 +2,4 @@
 
 **Instructor:** *Kevin Wu*
 **Co-Instrcutor:** *Eric Wu*
-**Session:** *October 10, 2022*
-
+**Session:** *November, 2022*
